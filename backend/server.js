@@ -3,6 +3,11 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
+const https = require('https');
+
+const agent = new https.Agent({
+  rejectUnauthorized: false, // Disable SSL certificate validation
+});
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -29,7 +34,7 @@ app.get('/api/destinations', async (req, res) => {
 app.post('/api/destinations', async (req, res) => {
   const { country } = req.body;
   try {
-    const response = await axios.get(`${COUNTRIES_API_BASE_URL}/name/${country}`);
+    const response = await axios.get(`${COUNTRIES_API_BASE_URL}/name/${country}`, { httpsAgent: agent });
     const countryInfo = response.data[0];
     
     const result = await pool.query(
