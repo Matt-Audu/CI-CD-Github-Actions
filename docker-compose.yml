@@ -1,0 +1,46 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - "3002:3002"
+    env_file: ./backend/.env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgrestest@postgresdb:5432/dreamvacations
+      - COUNTRIES_API_BASE_URL=https://restcountries.com/v3.1
+      - PORT=3002
+    depends_on:
+      - postgresdb
+      
+  postgresdb:
+    image: postgres:latest
+    container_name: postgresdb
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=postgrestest
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=dreamvacations
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer:latest
+    restart: always
+    ports:
+      - "8080:8080"
+
+volumes:
+  pgdata:
