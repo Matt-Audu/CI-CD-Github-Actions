@@ -61,4 +61,4 @@ jobs:
           git config --global user.email "simplymailmatthew7@gmail.com"
           git add trivy_*.json
           git commit -m "Add Trivy scan results"
-          git push https://${{ secrets.GH_TOKEN }}@github.com/Matt-Audu/CI-CD-Github-Actions.git
+          git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
