@@ -6,22 +6,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
-    services:
-      postgres:
-        image: postgres:latest
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: dreamvacations
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -29,6 +13,10 @@ jobs:
       - name: Set up Docker
         uses: docker/setup-buildx-action@v2
 
+      - name: Set up Docker Compose
+        run: |
+            docker-compose -f ./docker-compose.yml up -d
+        
       - name: Wait for PostgreSQL to be ready
         run: |
           until pg_isready -h localhost -p 5432 -U postgres; do
@@ -42,3 +30,24 @@ jobs:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
           psql -h localhost -p 5432 -U postgres -f ./script_dreamvacations.sql
+
+      - name: Download Trivy
+        run: |
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.30.2_Linux-64bit.tar.gz
+          tar zxvf trivy_0.30.2_Linux-64bit.tar.gz
+          sudo mv trivy /usr/local/bin/
+  
+      - name: Scan Docker image with Trivy
+        run: |
+          trivy image --format json --output trivy_postgres_report.json postgres:latest
+          trivy image --format json --output trivy_frontend_image_report.json frontend:latest
+          trivy image --format json --output trivy_backend_image_report.json backend:latest
+          trivy image --format json --output trivy_adminer_image_report.json adminer:latest
+  
+      - name: Commit Trivy scan results
+        run: |
+          git config --global Matt-Audu 'github-actions'
+          git config --global simplymailmatthew7@gmail.com 'github-actions@github.com'
+          git add trivy_*.json
+          git commit -m "Add Trivy scan results"
+          git push
