@@ -50,10 +50,10 @@ jobs:
 
       - name: Scan Docker images with Trivy
         run: |
-          trivy image --format json --output trivy_postgres_report.json postgres:latest
-          trivy image --format json --output trivy_frontend_image_report.json dream-vacations-frontend:latest
-          trivy image --format json --output trivy_backend_image_report.json dream-vacations-backend:latest
-          trivy image --format json --output trivy_adminer_image_report.json adminer:latest
+          trivy image --format table --output trivy_postgres_report.txt postgres:latest
+          trivy image --format table --output trivy_frontend_image_report.txt dream-vacations-frontend:latest
+          trivy image --format table --output trivy_backend_image_report.txt dream-vacations-backend:latest
+          trivy image --format table --output trivy_adminer_image_report.txt adminer:latest
 
       - name: Commit Trivy scan results
         run: |
