@@ -18,8 +18,14 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      - name: Set up Docker Compose
-        run: docker-compose -f ./docker-compose.yml up -d
+      - name: Build Docker images with custom names
+        run: |
+          docker build -t dream-vacations-frontend:latest ./frontend
+          docker build -t dream-vacations-backend:latest ./backend
+
+      - name: Start Docker containers
+        run: |
+          docker-compose -f ./docker-compose.yml up -d
 
       - name: Wait for PostgreSQL to be ready
         run: |
@@ -33,27 +39,26 @@ jobs:
         env:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: psql -h localhost -p 5432 -U postgres -f ./script_dreamvacations.sql
-
+  
       - name: Download Trivy
         run: |
-          sudo apt-get install wget gnupg
+          sudo apt-get install -y wget gnupg
           wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
           sudo apt-get update
-          sudo apt-get install trivy
+          sudo apt-get install -y trivy
 
-
-      - name: Scan Docker image with Trivy
+      - name: Scan Docker images with Trivy
         run: |
           trivy image --format json --output trivy_postgres_report.json postgres:latest
-          trivy image --format json --output trivy_frontend_image_report.json dream-vacations-frontend
-          trivy image --format json --output trivy_backend_image_report.json dream-vacations-backend
+          trivy image --format json --output trivy_frontend_image_report.json dream-vacations-frontend:latest
+          trivy image --format json --output trivy_backend_image_report.json dream-vacations-backend:latest
           trivy image --format json --output trivy_adminer_image_report.json adminer:latest
 
       - name: Commit Trivy scan results
         run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
+          git config --global Matt-Audu 'github-actions'
+          git config --global simplymailmatthew7@gmail.com 'github-actions@github.com'
           git add trivy_*.json
           git commit -m "Add Trivy scan results"
           git push
