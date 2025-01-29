@@ -57,8 +57,8 @@ jobs:
 
       - name: Commit Trivy scan results
         run: |
-          git config --global Matt-Audu 'github-actions'
-          git config --global simplymailmatthew7@gmail.com 'github-actions@github.com'
+          git config --global user.name "Matt-Audu"
+          git config --global user.email "simplymailmatthew7@gmail.com"
           git add trivy_*.json
           git commit -m "Add Trivy scan results"
-          git push
+          git push https://${{ secrets.GH_TOKEN }}@github.com/Matt-Audu/CI-CD-Github-Actions.git
