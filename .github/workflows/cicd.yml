@@ -18,15 +18,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
-      - name: Build Docker images with custom names
+      # Step 4: Build Docker images with custom names
+      - name: Build Docker images
         run: |
           docker build -t dream-vacations-frontend:latest ./frontend
           docker build -t dream-vacations-backend:latest ./backend
 
+      # Step 5: Start Docker containers
       - name: Start Docker containers
         run: |
           docker-compose -f ./docker-compose.yml up -d
 
+      # Step 6: Wait for PostgreSQL to be ready
       - name: Wait for PostgreSQL to be ready
         run: |
           until pg_isready -h localhost -p 5432 -U postgres; do
@@ -35,11 +38,13 @@ jobs:
           done
           echo "PostgreSQL is ready!"
 
+      # Step 7: Execute PostgreSQL script
       - name: Execute PostgreSQL script
         env:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: psql -h localhost -p 5432 -U postgres -f ./script_dreamvacations.sql
-  
+
+      # Step 8: Download Trivy
       - name: Download Trivy
         run: |
           sudo apt-get install -y wget gnupg
@@ -48,17 +53,34 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y trivy
 
+      # Step 9: Scan Docker images with Trivy
       - name: Scan Docker images with Trivy
         run: |
-          trivy image --format table --output trivy_postgres_report.txt postgres:latest
-          trivy image --format table --output trivy_frontend_image_report.txt dream-vacations-frontend:latest
-          trivy image --format table --output trivy_backend_image_report.txt dream-vacations-backend:latest
-          trivy image --format table --output trivy_adminer_image_report.txt adminer:latest
+          mkdir -p scan_results
+          trivy image --format table --output scan_results/trivy_postgres_report.txt postgres:latest
+          trivy image --format table --output scan_results/trivy_frontend_image_report.txt dream-vacations-frontend:latest
+          trivy image --format table --output scan_results/trivy_backend_image_report.txt dream-vacations-backend:latest
+          trivy image --format table --output scan_results/trivy_adminer_image_report.txt adminer:latest
 
+      # Step 10: Commit Trivy scan results
       - name: Commit Trivy scan results
         run: |
           git config --global user.name "${{ secrets.GIT_USER_NAME }}"
           git config --global user.email "${{ secrets.GIT_USER_EMAIL }}"
-          git add trivy_*.txt
+          git add scan_results/*
           git commit -m "Add Trivy scan results"
           git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}.git
+
+      # Step 11: Create a version tag
+      - name: Create version tag
+        id: tag
+        run: |
+          TAG="v$(date +%Y%m%d%H%M%S)"
+          echo "New tag: $TAG"
+          git tag $TAG
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      # Step 12: Push version tag
+      - name: Push version tag
+        run: |
+          git push origin ${{ steps.tag.outputs.tag }}
