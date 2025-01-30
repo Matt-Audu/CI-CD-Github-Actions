@@ -53,16 +53,30 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y trivy
 
-      # Step 9: Scan Docker images with Trivy
+      # Step 9: Create versioned subfolder for scan results
+      - name: Create versioned subfolder
+        run: |
+          BASE_DIR="scan_results"
+          FOLDER_NAME="image_scan_result"
+          VERSION="V $(date +%Y.%m.%d.%H.%M.%S)"
+          NEW_FOLDER="$BASE_DIR/$FOLDER_NAME - $VERSION"
+          mkdir -p "$NEW_FOLDER"
+          echo "Created new folder: $NEW_FOLDER"
+
+      # Step 10: Scan Docker images with Trivy and save to versioned folder
       - name: Scan Docker images with Trivy
         run: |
-          mkdir -p scan_results
-          trivy image --format table --output scan_results/trivy_postgres_report.txt postgres:latest
-          trivy image --format table --output scan_results/trivy_frontend_image_report.txt dream-vacations-frontend:latest
-          trivy image --format table --output scan_results/trivy_backend_image_report.txt dream-vacations-backend:latest
-          trivy image --format table --output scan_results/trivy_adminer_image_report.txt adminer:latest
+          BASE_DIR="scan_results"
+          FOLDER_NAME="image_scan_result"
+          VERSION="V $(date +%Y.%m.%d.%H.%M.%S)"
+          NEW_FOLDER="$BASE_DIR/$FOLDER_NAME - $VERSION"
+          mkdir -p "$NEW_FOLDER"
+          trivy image --format table --output "$NEW_FOLDER/trivy_postgres_report.txt" postgres:latest
+          trivy image --format table --output "$NEW_FOLDER/trivy_frontend_image_report.txt" dream-vacations-frontend:latest
+          trivy image --format table --output "$NEW_FOLDER/trivy_backend_image_report.txt" dream-vacations-backend:latest
+          trivy image --format table --output "$NEW_FOLDER/trivy_adminer_image_report.txt" adminer:latest
 
-      # Step 10: Commit Trivy scan results
+      # Step 11: Commit Trivy scan results
       - name: Commit Trivy scan results
         run: |
           git config --global user.name "${{ secrets.GIT_USER_NAME }}"
@@ -76,7 +90,7 @@ jobs:
             echo "No changes to commit"
           fi
 
-      # Step 11: Create a version tag
+      # Step 12: Create a version tag
       - name: Create version tag
         id: tag
         run: |
@@ -85,7 +99,8 @@ jobs:
           git tag $TAG
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
-      # Step 12: Push version tag
+      # Step 13: Push version tag
       - name: Push version tag
         run: |
           git push origin ${{ steps.tag.outputs.tag }}
+
