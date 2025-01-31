@@ -82,17 +82,18 @@ jobs:
             echo "No changes to commit"
           fi
 
-      - name: Create version tag
-        id: tag
-        run: |
-          TAG="v$(date +%Y.%m.%d-%H%M%S)"  
-          echo "New tag: $TAG"
-          git tag $TAG
-          echo "tag=$TAG" >> $GITHUB_OUTPUT
-
-      - name: Push version tag
-        run: |
-          git push origin ${{ steps.tag.outputs.tag }}
+      - name: Extract Docker metadata
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend
+            ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
   push-to-docker-hub:
     runs-on: ubuntu-latest
@@ -107,23 +108,22 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Debug version
+      - name: Debug metadata
         run: |
-          echo "VERSION: ${{ needs.build.outputs.tag }}"
+          echo "Tags: ${{ steps.metadata.outputs.tags }}"
+          echo "Labels: ${{ steps.metadata.outputs.labels }}"
 
       - name: Tag and push frontend image
         run: |
-          VERSION=${{ needs.build.outputs.tag }}  # Access the tag output from the `build` job
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:$VERSION ./frontend
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:$VERSION
-          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:$VERSION ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{ steps.metadata.outputs.tags }} ./frontend
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{ steps.metadata.outputs.tags }}
+          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{ steps.metadata.outputs.tags }} ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
 
       - name: Tag and push backend image
         run: |
-          VERSION=${{ needs.build.outputs.tag }}  # Access the tag output from the `build` job
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:$VERSION ./backend
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:$VERSION
-          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:$VERSION ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:${{ steps.metadata.outputs.tags }} ./backend
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:${{ steps.metadata.outputs.tags }}
+          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:${{ steps.metadata.outputs.tags }} ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest
 
