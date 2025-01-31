@@ -107,9 +107,13 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
+      - name: Debug version
+        run: |
+          echo "VERSION: ${{ needs.build.outputs.tag }}"
+
       - name: Tag and push frontend image
         run: |
-          VERSION=${{ steps.tag.outputs.tag }}  # Use the Git tag as the version
+          VERSION=${{ needs.build.outputs.tag }}  # Access the tag output from the `build` job
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:$VERSION ./frontend
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:$VERSION
           docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:$VERSION ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
@@ -117,7 +121,7 @@ jobs:
 
       - name: Tag and push backend image
         run: |
-          VERSION=${{ steps.tag.outputs.tag }}  # Use the Git tag as the version
+          VERSION=${{ needs.build.outputs.tag }}  # Access the tag output from the `build` job
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:$VERSION ./backend
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:$VERSION
           docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:$VERSION ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest
