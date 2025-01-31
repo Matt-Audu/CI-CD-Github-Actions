@@ -85,7 +85,7 @@ jobs:
       - name: Create version tag
         id: tag
         run: |
-          TAG="v$(date +%Y%m%d%H%M%S)"
+          TAG="v$(date +%Y.%m.%d-%H%M%S)"  
           echo "New tag: $TAG"
           git tag $TAG
           echo "tag=$TAG" >> $GITHUB_OUTPUT
