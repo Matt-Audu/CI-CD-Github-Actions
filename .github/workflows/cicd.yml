@@ -94,9 +94,9 @@ jobs:
         run: |
           git push origin ${{ steps.tag.outputs.tag }}
 
-  Push-to-Docker-Hub:
+  push-to-docker-hub:
     runs-on: ubuntu-latest
-    needs: build
+    needs: build  # Ensure this job runs only after the `build` job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -109,11 +109,17 @@ jobs:
 
       - name: Tag and push frontend image
         run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest ./frontend
+          VERSION=${{ steps.tag.outputs.tag }}  # Use the Git tag as the version
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:$VERSION ./frontend
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:$VERSION
+          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:$VERSION ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
 
       - name: Tag and push backend image
         run: |
-         docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest ./backend
-         docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest
+          VERSION=${{ steps.tag.outputs.tag }}  # Use the Git tag as the version
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:$VERSION ./backend
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:$VERSION
+          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:$VERSION ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest
 
