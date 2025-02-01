@@ -17,16 +17,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y docker-compose
-
       - name: Build Docker images
         run: |
           docker build -t dream-vacations-frontend:latest ./frontend
           docker build -t dream-vacations-backend:latest ./backend
-
       - name: Start Docker containers
         run: |
           docker-compose -f ./docker-compose.yml up -d
-
       - name: Wait for PostgreSQL to be ready
         run: |
           until pg_isready -h localhost -p 5432 -U postgres; do
@@ -34,7 +31,6 @@ jobs:
             sleep 2
           done
           echo "PostgreSQL is ready!"
-
       - name: Execute PostgreSQL script
         env:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
@@ -47,7 +43,6 @@ jobs:
           echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
           sudo apt-get update
           sudo apt-get install -y trivy
-
       - name: Create versioned subfolder
         run: |
           BASE_DIR="scan_results"
@@ -56,7 +51,6 @@ jobs:
           NEW_FOLDER="$BASE_DIR/$FOLDER_NAME - $VERSION"
           mkdir -p "$NEW_FOLDER"
           echo "Created new folder: $NEW_FOLDER"
-
       - name: Scan Docker images with Trivy
         run: |
           BASE_DIR="scan_results"
@@ -68,7 +62,6 @@ jobs:
           trivy image --format table --output "$NEW_FOLDER/trivy_frontend_image_report.txt" dream-vacations-frontend:latest
           trivy image --format table --output "$NEW_FOLDER/trivy_backend_image_report.txt" dream-vacations-backend:latest
           trivy image --format table --output "$NEW_FOLDER/trivy_adminer_image_report.txt" adminer:latest
-
       - name: Commit Trivy scan results
         run: |
           git config --global user.name "${{ secrets.GIT_USER_NAME }}"
@@ -81,23 +74,19 @@ jobs:
           else
             echo "No changes to commit"
           fi
-
-      - name: Extract Docker metadata
-        id: metadata
-        uses: docker/metadata-action@v5
-        with:
-          images: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend
-            ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
-
-  push-to-docker-hub:
+      - name: Create version tag
+        id: tag
+        run: |
+          TAG="v$(date +%Y%m%d%H%M%S)"
+          echo "New tag: $TAG"
+          git tag $TAG
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+      - name: Push version tag
+        run: |
+          git push origin ${{ steps.tag.outputs.tag }}
+  Push-to-Docker-Hub:
     runs-on: ubuntu-latest
-    needs: build  # Ensure this job runs only after the `build` job
+    needs: build
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -108,22 +97,21 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Debug metadata
-        run: |
-          echo "Tags: ${{ steps.metadata.outputs.tags }}"
-          echo "Labels: ${{ steps.metadata.outputs.labels }}"
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/dream-vacations-frontend
+            ${{ secrets.DOCKERHUB_USERNAME }}/dream-vacations-backend
+          tags: |
+            type=semver,pattern={{version}}
 
-      - name: Tag and push frontend image
-        run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{ steps.metadata.outputs.tags }} ./frontend
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{ steps.metadata.outputs.tags }}
-          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{ steps.metadata.outputs.tags }} ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
 
-      - name: Tag and push backend image
-        run: |
-          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:${{ steps.metadata.outputs.tags }} ./backend
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:${{ steps.metadata.outputs.tags }}
-          docker tag ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:${{ steps.metadata.outputs.tags }} ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:latest
+      - name: Build And Push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
 
