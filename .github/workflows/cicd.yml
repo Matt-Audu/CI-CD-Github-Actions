@@ -106,6 +106,7 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/dream-vacations-backend
           tags: |
             type=semver,pattern={{version}}
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
 
       - name: Build And Push
