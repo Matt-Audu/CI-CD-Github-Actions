@@ -106,7 +106,6 @@ jobs:
             ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend
           tags: |
             type=semver,pattern={{version}}
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
 
 
       - name: Push Frontend Image
