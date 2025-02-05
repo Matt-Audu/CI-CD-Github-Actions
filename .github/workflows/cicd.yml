@@ -105,16 +105,15 @@ jobs:
 
       - name: "Build Docker Images"
         run:  | 
-         docker build -t dream-vacations-frontend: ./frontend
+         docker build -t dream-vacations-frontend ./frontend
 
       - name: "Tag Docker Images"
         run: |
-         docker tag dream-vacations-frontend:latest ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
-
+          docker tag dream-vacations-frontend:latest ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
          
       - name: "Push to Docker Hub"
         run: |
-         docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
 
 
       
