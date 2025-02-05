@@ -31,7 +31,7 @@ jobs:
             sleep 2
           done
           echo "PostgreSQL is ready!"
-      - name: Execute PostgreSQL script
+      - name: Execute PostgreSQL Script
         env:
           PGPASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: psql -h localhost -p 5432 -U postgres -f ./script_dreamvacations.sql
@@ -97,31 +97,20 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: |
-            ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend
-            ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend
-          tags: |
-            type=semver,pattern={{version}}
+      - name: "Create version number"
+        run: |
+         echo "VERSION_NUMBER=${RANDOM}" >> $GITHUB_ENV
+
+      - name: "Build Docker Images"
+        run:  | 
+         docker build -t dream-vacations-frontend:${{ env.VERSION_NUMBER}} ./frontend
+         docker build -t dream-vacations-backend:${{ env.VERSION_NUMBER}} ./backend
+         
+      - name: "Push to Docker Hub"
+        run: |
+           docker push dream-vacations-frontend:${{ env.VERSION_NUMBER }}
+           docker push dream-vacations-backend:${{ env.VERSION_NUMBER }}
 
 
-      - name: Push Frontend Image
-        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-        with:
-          context: ./frontend
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-      - name: Push Backend Image
-        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-        with:
-          context: ./backend
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
       
   
