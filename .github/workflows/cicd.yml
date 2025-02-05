@@ -105,7 +105,7 @@ jobs:
 
       - name: "Build Docker Images"
         run:  | 
-         docker build -t dream-vacations-frontend ./frontend
+         docker build -t dream-vacations-frontend:${{ env.VERSION_NUMBER }} ./frontend
 
       - name: "Tag Docker Images"
         run: |
