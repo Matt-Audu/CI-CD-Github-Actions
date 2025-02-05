@@ -110,8 +110,8 @@ jobs:
          
       - name: "Push to Docker Hub"
         run: |
-           docker push mattaudu/dream-vacations-frontend:${{ env.VERSION_NUMBER }}
-           docker push mattaudu/dream-vacations-backend:${{ env.VERSION_NUMBER }}
+           docker push dream-vacations-frontend:${{ env.VERSION_NUMBER }}
+           docker push dream-vacations-backend:${{ env.VERSION_NUMBER }}
 
 
       
