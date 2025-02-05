@@ -99,7 +99,8 @@ jobs:
 
       - name: "Create version number"
         run: |
-         echo "VERSION_NUMBER=${RANDOM}" >> $GITHUB_ENV
+         echo "VERSION_NUMBER=V1.0.$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
+
 
 
       - name: "Build Docker Images"
