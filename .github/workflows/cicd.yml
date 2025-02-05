@@ -109,11 +109,11 @@ jobs:
 
       - name: "Tag Docker Images"
         run: |
-          docker tag dream-vacations-frontend:latest ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
+          docker tag dream-vacations-frontend:${{env.VERSION_NUMBER}} ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{env.VERSION_NUMBER}}
          
       - name: "Push to Docker Hub"
         run: |
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:latest
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{env.VERSION_NUMBER}}
 
 
       
