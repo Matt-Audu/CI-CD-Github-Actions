@@ -106,12 +106,10 @@ jobs:
       - name: "Build Docker Images"
         run:  | 
          docker build -t dream-vacations-frontend:${{ env.VERSION_NUMBER}} ./frontend
-         docker build -t dream-vacations-backend:${{ env.VERSION_NUMBER}} ./backend
          
       - name: "Push to Docker Hub"
         run: |
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{ env.VERSION_NUMBER }}
-          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:${{ env.VERSION_NUMBER }}
+         docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{ env.VERSION_NUMBER }}
 
 
       
