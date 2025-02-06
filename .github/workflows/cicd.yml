@@ -101,16 +101,14 @@ jobs:
         run: |
          echo "VERSION_NUMBER=V1.0.$GITHUB_RUN_NUMBER" >> $GITHUB_ENV
 
-
-
       - name: "Build Docker Images"
         run:  | 
          docker build -t dream-vacations-frontend:${{ env.VERSION_NUMBER }} ./frontend
-
+         docker build -t dream-vacations-backend:${{ env.VERSION_NUMBER }} ./backend
       - name: "Tag Docker Images"
         run: |
-          docker tag dream-vacations-frontend:${{env.VERSION_NUMBER}} ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{env.VERSION_NUMBER}}
-         
+         docker tag dream-vacations-frontend:${{env.VERSION_NUMBER}} ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{env.VERSION_NUMBER}}
+         docker tag dream-vacations-backend:${{env.VERSION_NUMBER}} ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-backend:${{env.VERSION_NUMBER}}
       - name: "Push to Docker Hub"
         run: |
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/dream-vacations-frontend:${{env.VERSION_NUMBER}}
