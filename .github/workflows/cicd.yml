@@ -86,24 +86,24 @@ jobs:
           git push origin ${{ steps.tag.outputs.tag }}
 
   Sonarqube-Analysis:
-    runs-on: ubuntu-latest
-    needs: build
-    steps: 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-        
-      - name: Sonarcloud Scan
-        uses: SonarSource/sonarqube-scan-action@v4.1.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization= ${{ secrets.SONAR_ORG }}
-            -Dsonar.projectKey= ${{ secrets.SONAR_PROJECT_KEY }}
-            -Dsonar.sources=.      
+   runs-on: ubuntu-latest
+   needs: build
+   steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Sonarcloud Scan
+      uses: SonarSource/sonarqube-scan-action@v4
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        GH_TOKEN: ${{ secrets.GH_TOKEN }}
+      with:
+        args: >
+          -Dsonar.organization=${{ secrets.SONAR_ORG }}
+          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
+          -Dsonar.sources=.
   
   
   Push-to-Docker-Hub:
