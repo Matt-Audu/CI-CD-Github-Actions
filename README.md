@@ -1,5 +1,7 @@
 # Dream Vacation Destinations
 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4bc8fd6a4b6447b588a719a966c04b7f)](https://app.codacy.com/gh/Matt-Audu/CI-CD-Github-Actions?utm_source=github.com&utm_medium=referral&utm_content=Matt-Audu/CI-CD-Github-Actions&utm_campaign=Badge_Grade)
+
 This application allows users to create a list of countries they'd like to visit, providing basic information about each country. The project is structured to mimic a real-life production environment, employing best practices in software development, deployment, and continuous integration/continuous delivery (CI/CD).
 
 ## Setup
