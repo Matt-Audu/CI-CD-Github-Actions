@@ -94,16 +94,19 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Sonarcloud Scan
-      uses: SonarSource/sonarqube-scan-action@v4
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+      
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@v1
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      with:
-        args: >
-          -Dsonar.organization=${{ secrets.SONAR_ORG }}
-          -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
-          -Dsonar.sources=.
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
   
   
   Push-to-Docker-Hub:
