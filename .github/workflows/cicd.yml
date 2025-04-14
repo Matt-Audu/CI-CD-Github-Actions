@@ -94,7 +94,7 @@ jobs:
     - name: SonarQube Scan
       uses: sonarsource/sonarqube-scan-action@v2
       with:
-        args: >
+        args: >-
           -Dsonar.projectKey=CI-CD-githubactions
           -Dsonar.projectName="CI/CD githubactions"
           -Dsonar.sources=frontend/,backend/
