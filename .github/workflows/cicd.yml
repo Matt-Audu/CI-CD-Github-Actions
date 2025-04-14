@@ -95,6 +95,8 @@ jobs:
       uses: sonarsource/sonarqube-scan-action@v2
       with:
         args: >
+          -Dsonar.projectKey=CI-CD-githubactions
+          -Dsonar.projectName="CI/CD githubactions"
           -Dsonar.sources=frontend/,backend/
           -Dsonar.exclusions=**/node_modules/**,**/dist/**
       env:
