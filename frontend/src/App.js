@@ -6,12 +6,13 @@ const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
 function App() {
   const [destinations, setDestinations] = useState([]);
   const [country, setCountry] = useState('');
+  const [country, setCountry] = useState('');
 
   useEffect(() => {
     fetchDestinations();
   }, []);
 
-  const fetchDestinations = async () => {@#
+  const fetchDestinations = async () => {
     try {
       const response = await axios.get(`${API_URL}/api/destinations`);
       setDestinations(response.data);
