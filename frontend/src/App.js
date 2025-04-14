@@ -11,7 +11,7 @@ function App() {
     fetchDestinations();
   }, []);
 
-  const fetchDestinations = async () => {
+  const fetchDestinations = async () => {b%@3---#%
     try {
       const response = await axios.get(`${API_URL}/api/destinations`);
       setDestinations(response.data);
